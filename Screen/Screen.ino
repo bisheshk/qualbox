@@ -1,19 +1,17 @@
 #include <memorysaver.h>
 #include <UTFT.h>
+#define KEY_PIN_BL 2
+#define RX_PIN 15
+#define TX_PIN 14
 
-// UTFT_ViewFont 
-// Copyright (C)2015 Rinky-Dink Electronics, Henning Karlsen. All right reserved
-// web: http://www.RinkyDinkElectronics.com/
-//
-// This program is a demo of the included fonts.
-//
-// This demo was made for modules with a screen resolution 
-// of 320x240 pixels.
-//
-// This program requires the UTFT library.
-//
+// #include <SoftwareSerial.h>
 
-#include <UTFT.h>
+const String BLUETOOTH_NAME = "SCREENAGERS";
+const String BLUETOOTH_PASSWORD = "4321";
+String text;
+
+// SoftwareSerial BTSerial(RX_PIN, TX_PIN); // BTSerial
+String data;
 
 
 // Declare which fonts we will be using
@@ -38,7 +36,9 @@ extern uint8_t Inconsola[];
 UTFT myGLCD(ILI9341_16, 52,50,48,46);
 
 int interval;
-const int REFRESH_INTERVAL = 30;
+const int REFRESH_INTERVAL = 60;
+const int MSG_INTERVAL = REFRESH_INTERVAL/2;
+const int BUTTON_INTERVAL = MSG_INTERVAL/2;
 const int Y_MAX = 240;
 const int PAD = 25;
 const int TASKS = 4;
@@ -110,8 +110,28 @@ void setup()
 {
   myGLCD.InitLCD();
   interval = 1;
+  myGLCD.clrScr();
+  // pinMode(KEY_PIN_BL, OUTPUT);
+  // Set Module to AT mode commands to be able to modify pass and name
+//  digitalWrite(KEY_PIN_BL, HIGH);
+//  BTSerial.begin(9600);
+//  delay(100);
+//
+//  text = "AT+NAME=";
+//  text = String(text + BLUETOOTH_NAME + "\r\n");
+//  for (int i = 0; i < text.length(); i++) {
+//    BTSerial.write(text[i]);
+//  }
+//
+//  delay(100);
+//  text = "AT+PSWD=";
+//  text = String(text + BLUETOOTH_PASSWORD + "\r\n");
+//  for (int i = 0; i < text.length(); i++) {
+//    BTSerial.write(text[i]);
+//  }
+  Serial.begin(9600);
+
   
-  myGLCD.clrScr(); 
 }
 
 
@@ -121,9 +141,41 @@ void text_update() {
   check_updates();
 }
 
+void msg_update() {
+  // check if a signal is received! 
+  if (Serial.available()) {
+    char received = Serial.read();
+    Serial.write(received);
+    if (received == '~') {
+      Serial.write("We have received: ");
+      Serial.write(received+'\n' + data.charAt(0) + data.charAt(1));
+      if (data.length() > 40) {
+        int offset = data.length() - 40;
+        String tmp = "";
+        for (int k = offset; k < data.length(); k ++) {
+          tmp += data.charAt(k);
+        }
+        data = tmp;
+      } else if (data.length() < 40) {
+        String tmp = "";
+        for (int k = data.length(); k < 40; k ++) {
+          tmp += " ";
+        }
+        data = tmp;
+      }
+      message_buffer = data;
+      data = "";
+    } else {
+      data+=received;
+    }
+
+  }
+  
+}
+
 void check_updates() {
   int message_length = message_buffer.length();
-  if (message_length == 40) {
+  if (message_length >0) {
     String build_str = "";
     for (int i = 0; i < 10; i++) {
       build_str += message_buffer[i];
@@ -156,43 +208,18 @@ void loop()
   myGLCD.setFont(Inconsola);
   int i = 0;
   while(1) {
+
+    msg_update();
     if (interval % REFRESH_INTERVAL == 0) {
       interval = 0;
-      String test = "";
-      for (int j = 0; j < 40; j ++) {
-        test += genRandom();
-      }
-      message_buffer = test;
-      test = "";
-      // update_message(1, String(i));
+      
       text_update();
     }
+    //if (interval % MSG_INTERVAL == 0) {
+    //  msg_update();
+    //}
     i++;
     interval++;
     
     };
 }
-
-  
-  // myGLCD.setColor(0, 255, 0);
-  // myGLCD.setBackColor(0, 0, 0);
-
-  // myGLCD.setFont(Inconsola);
-  // myGLCD.print("Eat your snack!", LEFT, 0);
-  // if (i%30 == 0) {
-  //   myGLCD.print("AAAAHHHHH!!!!", LEFT, 32); 
-  //   myGLCD.clrScr();
-  // }
-
-  // myGLCD.print("@ABCDEFGHIJKLMNO", CENTER, 32);
-  // myGLCD.print("PQRSTUVWXYZ[\\]^_", CENTER, 48);
-  // myGLCD.print("`abcdefghijklmno", CENTER, 64);
-  // myGLCD.print("pqrstuvwxyz{|}~ ", CENTER, 80);
-
-  // myGLCD.setFont(SmallFont);
-  // myGLCD.print(" !\"#$%&'()*+,-./0123456789:;<=>?", CENTER, 120);
-  // myGLCD.print("@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_", CENTER, 132);
-  // myGLCD.print("`abcdefghijklmnopqrstuvwxyz{|}~ ", CENTER, 144);
-
-  // myGLCD.setFont(SevenSegNumFont);
-  // myGLCD.print("0123456789", CENTER, 190);
