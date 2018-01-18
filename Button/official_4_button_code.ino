@@ -2,10 +2,10 @@
 #include<Servo.h>
 
 Servo myservo;
-const int taskone = 13;     // the number of the pushbutton pin
-const int tasktwo = 12;
-const int taskthree = 8;
-const int taskfour = 7;
+const int taskone = 39;     // the number of the pushbutton pin
+const int tasktwo = 41;
+const int taskthree = 43;
+const int taskfour = 45;
 
 //
 // variables will change:
