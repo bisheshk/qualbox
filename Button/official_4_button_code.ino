@@ -22,7 +22,7 @@ void setup() {
   pinMode(taskthree, INPUT);
   pinMode(taskfour, INPUT);
 
-  myservo.attach(3);
+  myservo.attach(3);  //Remember to modify this once you changed the pin for motor, linked with "PWM"
   myservo.write(85);
   Serial.begin(9600);
 }
