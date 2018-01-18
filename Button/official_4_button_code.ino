@@ -22,7 +22,7 @@ void setup() {
   pinMode(taskthree, INPUT);
   pinMode(taskfour, INPUT);
 
-  myservo.attach(9);
+  myservo.attach(3);
   myservo.write(85);
   Serial.begin(9600);
 }
